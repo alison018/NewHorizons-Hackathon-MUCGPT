@@ -24,7 +24,7 @@ export const LanguageSelector = ({ onSelectionChange, defaultlang }: Props) => {
                 appearance="underline"
                 size="small"
                 positioning="below-start"
-            >
+            > 
                 <Option text="Deutsch" className={styles.option}>
                     Deutsch
                 </Option>

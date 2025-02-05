@@ -17,6 +17,7 @@ import { ChatLayout } from "../../components/ChatLayout/ChatLayout";
 import { ChatTurnComponent } from "../../components/ChatTurnComponent/ChatTurnComponent";
 import { CHAT_STORE } from "../../constants";
 import { DBMessage, DBObject, StorageService } from "../../service/storage";
+import { MyContext } from "../layout/MyContext";
 
 export type ChatMessage = DBMessage<ChatResponse>;
 
@@ -27,6 +28,10 @@ export interface ChatOptions {
 }
 
 const Chat = () => {
+
+    const myApp = useContext(MyContext);
+
+    
     const { language } = useContext(LanguageContext);
     const { LLM } = useContext(LLMContext);
     const { t } = useTranslation();
@@ -58,6 +63,15 @@ const Chat = () => {
             setSystemPromptTokens(response.count);
         } else setSystemPromptTokens(0);
     }, [debouncedSystemPrompt, LLM]);
+ 
+    useEffect(() => {
+        console.log(myApp) 
+        // myApp.changeTheme("dark")
+        // myApp.changeLanguage("de")
+        // myApp.changeFont("arial")
+      }, []);   
+    
+
 
     useEffect(() => {
         makeTokenCountRequest();
@@ -66,10 +80,9 @@ const Chat = () => {
         }
     }, [debouncedSystemPrompt, LLM, makeTokenCountRequest]);
 
-    const fetchHistory = () => {
-        return storageService.getAll().then(chats => {
-            if (chats) setAllChats(chats);
-        });
+    const fetchHistory = async () => {
+        const chats = await storageService.getAll();
+        if (chats) setAllChats(chats);
     };
 
     useEffect(() => {
@@ -100,6 +113,95 @@ const Chat = () => {
                 setIsLoading(false);
             });
     }, []);
+
+    const handleUserPrompt = async (question: string, system?: string) => {
+
+        
+//    const promptFromUser = `You are a strict UI command classifier. Analyze the user message EXCLUSIVELY for theme change commands.
+
+// RULES:
+// 1. Respond ONLY with "1" if the message is EXPLICITLY about:
+//    - Enabling dark theme/mode
+//    - Switching to dark appearance
+//    - Using night/dark interface
+//    - Any direct reference to "dark" theme activation
+
+// 2. Respond ONLY with "2" if the message is EXPLICITLY about:
+//    - Enabling light theme/mode
+//    - Switching to light appearance
+//    - Using day/light interface
+//    - Any direct reference to "light" theme activation`
+
+    
+    const promptX = `
+this is the sentence "${question}".
+Respond ONLY with 1 if the message is EXPLICITLY about making a change to the theme, such as dark or light, font size or language of the application. 
+Respond with only 2, if the sentence about locating something in the website.
+Respond with 3, if the user wants to empty the chat.
+if neither, respond with 4.
+`
+        const request: ChatRequest = {
+            history: [],
+            shouldStream: false,
+            language: language,
+            temperature: 0.2,
+            system_message: promptX,
+            max_output_tokens: max_output_tokens,
+            model: LLM.llm_name
+        };
+
+        const response = await chatApi(request); 
+        const {content: answer} =  await response.json()
+  // myApp.changeTheme("dark")
+        // myApp.changeLanguage("de")
+        // myApp.changeFont("arial")
+        if(answer === "1"){
+            const newPrompt = `
+The user said "${question}".
+I have three js functions for you to choose from:
+1. changeTheme, its parameters are "dark" or "light"
+2. changeLanguage, its parameters are Deutsch, Englisch, Französich, Bairisch, Ukrainisch
+3. changeFontSize, its parameters are numbers from 0.8 to 1.8'
+
+Please just give me an array of two elements, nothing extra, the first element is the function name and the second element is the parameter.`
+                const response = await chatApi({
+                    ...request,
+                    system_message: newPrompt
+                }); 
+                const {content: answer} =  await response.json()
+                console.log(answer)
+                const answerVal = JSON.parse(answer) 
+                 // ["changeTheme", "dark"] o ["changeLanguage", "Deutsch"] o ["changeFont", 120]
+                // const val1 = '["changeTheme", "dark"]'
+                // const val2 =  ["changeTheme", "dark"] 
+
+                myApp[answerVal[0]](answerVal[1]) 
+        }else if(answer === "2"){ 
+            const newPrompt = `
+The user said "${question}".
+I have an object with the elements that he user can locate on the website.
+The object will have the blinking states of the elements.
+
+The object is: 
+cost blinkingElements = {
+    sideMenu: false,
+    languageSelector: false,
+    themeSelector: false,
+    fontSelector: false,
+    designSelector: false,
+    feedbackButton: true,
+    
+}
+`
+
+        } else if(answer === "3"){ 
+            clearChat()
+
+        }else if(answer === "4"){
+            makeApiRequest(question, system);
+        }
+        
+    }
 
     const makeApiRequest = async (question: string, system?: string) => {
         lastQuestionRef.current = question;
@@ -260,6 +362,8 @@ const Chat = () => {
 
     const answerList = (
         <>
+        ///useContext
+        <button className="blinking:blinkingElements.LanguageSlector">Language selector</button>
             {answers.map((answer, index) => (
                 <ChatTurnComponent
                     key={index}
@@ -305,7 +409,7 @@ const Chat = () => {
             clearOnSend
             placeholder={t("chat.prompt")}
             disabled={isLoading}
-            onSend={question => makeApiRequest(question, systemPrompt)}
+            onSend={question => handleUserPrompt(question, systemPrompt)}
             tokens_used={totalTokens}
             question={question}
             setQuestion={question => setQuestion(question)}

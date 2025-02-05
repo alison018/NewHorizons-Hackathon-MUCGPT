@@ -17,7 +17,11 @@ import { LightContext } from "./LightContext";
 import { BOT_STORE, CHAT_STORE, DEFAULT_APP_CONFIG } from "../../constants";
 import { BotStorageService } from "../../service/botstorage";
 import { StorageService } from "../../service/storage";
+import { MyContext } from './MyContext'
 
+
+
+ 
 const formatDate = (date: Date) => {
     let formatted_date = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
     return formatted_date;
@@ -55,6 +59,9 @@ export const Layout = () => {
         setLight(light);
         localStorage.setItem(STORAGE_KEYS.SETTINGS_IS_LIGHT_THEME, String(light));
         setTheme(adjustTheme(light, fontscaling));
+    };
+    const onThemeChangeSimple= ( mode: 'dark'| 'light') => {
+        onThemeChange(mode === 'light');
     };
 
     const botStorageService: BotStorageService = new BotStorageService(BOT_STORE);
@@ -98,6 +105,13 @@ export const Layout = () => {
         setLanguage(lang);
         localStorage.setItem(STORAGE_KEYS.SETTINGS_LANGUAGE, lang);
     };
+    const onLanguageSelectionChangedSimple = ( lang: string) => {
+        lang = lang || DEFAULTLANG;
+        // Deutsch || Englisch || Französich || Bairisch || Ukrainisch
+        onLanguageSelectionChanged({} as any, {optionValue: lang} as any);
+    };
+
+    
     const onLLMSelectionChanged = (e: SelectionEvents, selection: OptionOnSelectData) => {
         let llm = selection.optionValue || DEFAULTLLM;
         let found_llm = models.find(model => model.llm_name == llm);
@@ -105,9 +119,13 @@ export const Layout = () => {
             setLLM(found_llm);
             localStorage.setItem(STORAGE_KEYS.SETTINGS_LLM, llm);
         }
-    };
-
+    }; 
     return (
+        <MyContext.Provider value={{ 
+                changeFontSize: onFontscaleChange, 
+                changeTheme: onThemeChangeSimple,
+                changeLanguage: onLanguageSelectionChangedSimple
+             }}>
         <FluentProvider theme={theme}>
             <LightContext.Provider value={isLight}>
                 <div className={styles.layout}>
@@ -203,6 +221,7 @@ export const Layout = () => {
                 </div>
             </LightContext.Provider>
         </FluentProvider>
+        </MyContext.Provider>
     );
 };
 
