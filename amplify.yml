@@ -7,12 +7,11 @@ frontend:
         - npm install
     build:
       commands:
-        # 1) Export the environment variable
         - export NODE_OPTIONS="--max_old_space_size=4096"
-        # 2) Run the build script
         - npm run buildlocal
   artifacts:
-    baseDirectory: build
+    # Point Amplify to the correct output folder
+    baseDirectory: app/backend/static
     files:
       - '**/*'
   cache:
