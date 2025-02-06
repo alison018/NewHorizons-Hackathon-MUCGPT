@@ -5,9 +5,6 @@ frontend:
       commands:
         # Change directory to where the package.json is located
         - cd app/frontend
-        # Install and switch to Node v22.13.1 using nvm (if available)
-        - nvm install 22.13.1
-        - nvm use 22.13.1
         # Install dependencies
         - npm install
     build:
