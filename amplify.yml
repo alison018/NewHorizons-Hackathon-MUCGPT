@@ -3,13 +3,13 @@ frontend:
   phases:
     preBuild:
       commands:
-        # Change directory to where the package.json is located
         - cd app/frontend
-        # Install dependencies
         - npm install
     build:
       commands:
-       - export NODE_OPTIONS="--max_old_space_size=4096"
+        # 1) Export the environment variable
+        - export NODE_OPTIONS="--max_old_space_size=4096"
+        # 2) Run the build script
         - npm run buildlocal
   artifacts:
     baseDirectory: build
