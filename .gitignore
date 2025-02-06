@@ -154,3 +154,8 @@ config/k.json
 config/p.json
 config/local.json
 .env*
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
