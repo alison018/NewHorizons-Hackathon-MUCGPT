@@ -4,7 +4,7 @@ frontend:
     preBuild:
       commands:
         # Change directory to where the package.json is located
-        - cd mucgpt/app/frontend
+        - cd app/frontend
         # Install dependencies (use npm ci or npm install)
         - npm i
     build:
