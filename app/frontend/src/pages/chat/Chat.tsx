@@ -362,8 +362,7 @@ cost blinkingElements = {
 
     const answerList = (
         <>
-        ///useContext
-        <button className="blinking:blinkingElements.LanguageSlector">Language selector</button>
+
             {answers.map((answer, index) => (
                 <ChatTurnComponent
                     key={index}
