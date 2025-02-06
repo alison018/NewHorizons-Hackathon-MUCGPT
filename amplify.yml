@@ -5,11 +5,13 @@ frontend:
       commands:
         # Change directory to where the package.json is located
         - cd app/frontend
-        # Install dependencies (use npm ci or npm install)
-        - npm i
+        # Install and switch to Node v22.13.1 using nvm (if available)
+        - nvm install 22.13.1
+        - nvm use 22.13.1
+        # Install dependencies
+        - npm install
     build:
       commands:
-        # Run build 
         - npm run buildlocal
   artifacts:
     baseDirectory: build
